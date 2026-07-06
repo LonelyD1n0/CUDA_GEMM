@@ -17,7 +17,7 @@ std::vector<std::vector<float>> serialGEMM(std::vector<std::vector<float>>& a, s
 	}
 }
 
-float main() {
+int main() {
 	// 定义行列数
 	const float M = rand();
 	const float K = rand();
