@@ -1,18 +1,18 @@
 ﻿  serial_GEMM.cpp
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(10,12): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(10,34): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(11,12): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(11,34): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(51,18): warning C4244: “=”: 从“int”转换到“_Ty”，可能丢失数据
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(51,18): warning C4244:         with
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(51,18): warning C4244:         [
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(51,18): warning C4244:             _Ty=float
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(51,18): warning C4244:         ]
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(56,18): warning C4244: “=”: 从“int”转换到“_Ty”，可能丢失数据
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(56,18): warning C4244:         with
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(56,18): warning C4244:         [
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(56,18): warning C4244:             _Ty=float
-D:\CUDA_GEMM\CUDA_GEMM\serial_src\serial_GEMM.cpp(56,18): warning C4244:         ]
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(10,12): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(10,34): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(11,12): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(11,34): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(51,18): warning C4244: “=”: 从“int”转换到“_Ty”，可能丢失数据
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(51,18): warning C4244:         with
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(51,18): warning C4244:         [
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(51,18): warning C4244:             _Ty=float
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(51,18): warning C4244:         ]
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(56,18): warning C4244: “=”: 从“int”转换到“_Ty”，可能丢失数据
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(56,18): warning C4244:         with
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(56,18): warning C4244:         [
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(56,18): warning C4244:             _Ty=float
+D:\CUDA_GEMM\serial_GEMM\serial_GEMM\serial_GEMM.cpp(56,18): warning C4244:         ]
   serial_GEMM.vcxproj -> D:\CUDA_GEMM\serial_GEMM\x64\Debug\serial_GEMM.exe
   'pwsh.exe' 不是内部或外部命令，也不是可运行的程序
   或批处理文件。
