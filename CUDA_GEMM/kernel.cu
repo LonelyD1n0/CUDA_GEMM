@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <chrono>  // 高精度计时
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
@@ -9,21 +10,14 @@
 __global__ void gemmKernel(float* A, float* B, float* C,
     int M, int N, int K)
 {
-    // 计算当前线程对应的行和列
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
-    // 越界保护：只处理有效的行和列
     if (row < M && col < N) {
         float sum = 0.0f;
-
-        // 计算 C[row][col] = A[row][:] · B[:][col]
         for (int k = 0; k < K; k++) {
-            // A[row * K + k]：A的第row行，第k列
-            // B[k * N + col]：B的第k行，第col列
             sum += A[row * K + k] * B[k * N + col];
         }
-
         C[row * N + col] = sum;
     }
 }
@@ -32,17 +26,16 @@ __global__ void gemmKernel(float* A, float* B, float* C,
 // CUDA版本的GEMM封装函数
 // ============================================
 bool cudaGEMM(std::vector<float>& a, std::vector<float>& b, std::vector<float>& c,
-    int M, int N, int K)
+    int M, int N, int K, float& kernelTime)
 {
-    // 计算总字节数
     size_t bytesA = M * K * sizeof(float);
     size_t bytesB = K * N * sizeof(float);
     size_t bytesC = M * N * sizeof(float);
 
-    // ========== 1. 在GPU上分配内存 ==========
     float* dev_A, * dev_B, * dev_C;
     cudaError_t status;
 
+    // ========== 1. 分配GPU内存 ==========
     status = cudaMalloc((void**)&dev_A, bytesA);
     if (status != cudaSuccess) {
         std::cerr << "cudaMalloc dev_A failed: " << cudaGetErrorString(status) << std::endl;
@@ -79,24 +72,20 @@ bool cudaGEMM(std::vector<float>& a, std::vector<float>& b, std::vector<float>& 
         return false;
     }
 
-    // ========== 3. 配置线程并启动核函数 ==========
-    // 每个线程计算C的一个元素
-    // 线程块大小：16×16（每个块256个线程）
+    // ========== 3. 配置并启动核函数 ==========
     dim3 threadsPerBlock(16, 16);
-
-    // 网格大小：向上取整，确保覆盖所有元素
     dim3 blocksPerGrid(
-        (N + threadsPerBlock.x - 1) / threadsPerBlock.x,  // 列方向
-        (M + threadsPerBlock.y - 1) / threadsPerBlock.y   // 行方向
+        (N + threadsPerBlock.x - 1) / threadsPerBlock.x,
+        (M + threadsPerBlock.y - 1) / threadsPerBlock.y
     );
 
-    std::cout << "CUDA配置:" << std::endl;
-    std::cout << "  线程块: " << threadsPerBlock.x << "×" << threadsPerBlock.y
-        << " = " << threadsPerBlock.x * threadsPerBlock.y << " 个线程" << std::endl;
-    std::cout << "  网格: " << blocksPerGrid.x << "×" << blocksPerGrid.y
-        << " = " << blocksPerGrid.x * blocksPerGrid.y << " 个块" << std::endl;
-    std::cout << "  总线程: " << blocksPerGrid.x * blocksPerGrid.y *
-        threadsPerBlock.x * threadsPerBlock.y << std::endl;
+    // ⭐ 创建CUDA事件用于精确计时
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    // 记录开始时间
+    cudaEventRecord(start, 0);
 
     // 启动核函数
     gemmKernel << <blocksPerGrid, threadsPerBlock >> > (dev_A, dev_B, dev_C, M, N, K);
@@ -110,12 +99,18 @@ bool cudaGEMM(std::vector<float>& a, std::vector<float>& b, std::vector<float>& 
     }
 
     // 等待GPU完成计算
-    status = cudaDeviceSynchronize();
-    if (status != cudaSuccess) {
-        std::cerr << "cudaDeviceSynchronize failed: " << cudaGetErrorString(status) << std::endl;
-        cudaFree(dev_A); cudaFree(dev_B); cudaFree(dev_C);
-        return false;
-    }
+    cudaDeviceSynchronize();
+
+    // 记录结束时间
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+
+    // 计算核函数执行时间（毫秒）
+    cudaEventElapsedTime(&kernelTime, start, stop);
+
+    // 销毁事件
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
 
     // ========== 4. 拷贝结果回CPU ==========
     status = cudaMemcpy(c.data(), dev_C, bytesC, cudaMemcpyDeviceToHost);
@@ -134,7 +129,33 @@ bool cudaGEMM(std::vector<float>& a, std::vector<float>& b, std::vector<float>& 
 }
 
 // ============================================
-// 打印矩阵的辅助函数
+// 串行GEMM（返回执行时间）
+// ============================================
+bool serialGEMM(const std::vector<float>& a, const std::vector<float>& b,
+    std::vector<float>& c, int M, int N, int K, double& elapsedTime)
+{
+    // ⭐ 使用chrono高精度计时
+    auto start = std::chrono::high_resolution_clock::now();
+
+    // 三重循环
+    for (int i = 0; i < M; i++) {
+        for (int j = 0; j < N; j++) {
+            float sum = 0.0f;
+            for (int k = 0; k < K; k++) {
+                sum += a[i * K + k] * b[k * N + j];
+            }
+            c[i * N + j] = sum;
+        }
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    elapsedTime = std::chrono::duration<double, std::milli>(end - start).count();
+
+    return true;
+}
+
+// ============================================
+// 打印矩阵
 // ============================================
 void printMatrix(const std::vector<float>& matrix, int rows, int cols,
     const std::string& name)
@@ -149,76 +170,96 @@ void printMatrix(const std::vector<float>& matrix, int rows, int cols,
 }
 
 // ============================================
+// 计算GFLOPS（每秒十亿次浮点运算）
+// ============================================
+double computeGFLOPS(int M, int N, int K, double timeMs)
+{
+    // 总浮点运算次数：2 * M * N * K（乘法和加法各一次）
+    double flops = 2.0 * M * N * K;
+    double timeSec = timeMs / 1000.0;
+    return flops / (timeSec * 1e9);
+}
+
+// ============================================
 // 主函数
 // ============================================
-int main() {
+int main()
+{
     // ========== 定义矩阵大小 ==========
-    const int M = 3;  // A的行数 = C的行数
-    const int K = 4;  // A的列数 = B的行数
-    const int N = 5;  // B的列数 = C的列数
+    // 小矩阵用于验证正确性
+    // const int M = 3, K = 4, N = 5;
 
+    // 大矩阵用于性能测试
+    const int M = 512;  // A的行数
+    const int K = 512;  // A的列数 = B的行数
+    const int N = 512;  // B的列数
+
+    std::cout << "==================== GEMM性能测试 ====================" << std::endl;
     std::cout << "矩阵维度: " << M << "×" << K << " · "
         << K << "×" << N << " = " << M << "×" << N << std::endl;
+    std::cout << "总元素数: " << M * N << " (" << (M * N) / 1024 << "K)" << std::endl;
+    std::cout << "浮点运算量: " << 2.0 * M * N * K / 1e9 << " GFLOPS" << std::endl;
+    std::cout << "======================================================" << std::endl;
     std::cout << std::endl;
 
-    // ========== 使用一维vector模拟二维矩阵 ==========
-    std::vector<float> A(M * K);  // M行K列
-    std::vector<float> B(K * N);  // K行N列
-    std::vector<float> C(M * N);  // M行N列（结果）
+    // ========== 分配内存 ==========
+    std::vector<float> A(M * K);
+    std::vector<float> B(K * N);
+    std::vector<float> C_serial(M * N);
+    std::vector<float> C_cuda(M * N);
 
     // 初始化A和B
-    std::cout << "初始化矩阵..." << std::endl;
     for (int i = 0; i < M * K; i++) {
-        A[i] = rand() % 10;  // 0-9的随机数
+        A[i] = rand() % 10;
     }
     for (int i = 0; i < K * N; i++) {
         B[i] = rand() % 10;
     }
 
-    // ========== 串行版本（用于验证结果） ==========
-    std::cout << "\n--- 串行计算 ---" << std::endl;
-    std::vector<float> C_serial(M * N, 0.0f);
-
-    // 三重循环：串行GEMM
-    for (int i = 0; i < M; i++) {
-        for (int j = 0; j < N; j++) {
-            float sum = 0.0f;
-            for (int k = 0; k < K; k++) {
-                sum += A[i * K + k] * B[k * N + j];
-            }
-            C_serial[i * N + j] = sum;
-        }
-    }
-    std::cout << "串行计算完成！" << std::endl;
+    // ========== 串行版本 ==========
+    std::cout << "【串行计算】" << std::endl;
+    double serialTime;
+    serialGEMM(A, B, C_serial, M, N, K, serialTime);
+    double serialGFLOPS = computeGFLOPS(M, N, K, serialTime);
+    std::cout << "  执行时间: " << serialTime << " ms" << std::endl;
+    std::cout << "  性能: " << serialGFLOPS << " GFLOPS" << std::endl;
+    std::cout << std::endl;
 
     // ========== CUDA版本 ==========
-    std::cout << "\n--- CUDA计算 ---" << std::endl;
-    bool success = cudaGEMM(A, B, C, M, N, K);
+    std::cout << "【CUDA计算】" << std::endl;
+    float kernelTime;
+    bool success = cudaGEMM(A, B, C_cuda, M, N, K, kernelTime);
 
     if (!success) {
         std::cerr << "CUDA计算失败！" << std::endl;
         return 1;
     }
-    std::cout << "CUDA计算成功！" << std::endl;
+    double cudaGFLOPS = computeGFLOPS(M, N, K, kernelTime);
+    std::cout << "  执行时间: " << kernelTime << " ms" << std::endl;
+    std::cout << "  性能: " << cudaGFLOPS << " GFLOPS" << std::endl;
+    std::cout << "  加速比: " << serialTime / kernelTime << "x" << std::endl;
+    std::cout << std::endl;
 
-    // ========== 打印矩阵 ==========
-    std::cout << std::endl;
-    printMatrix(A, M, K, "矩阵A");
-    std::cout << std::endl;
-    printMatrix(B, K, N, "矩阵B");
-    std::cout << std::endl;
-    printMatrix(C_serial, M, N, "串行结果C");
-    std::cout << std::endl;
-    printMatrix(C, M, N, "CUDA结果C");
+    // ========== 验证正确性（仅小矩阵时打印） ==========
+    if (M <= 16 && N <= 16) {
+        std::cout << std::endl;
+        printMatrix(A, M, K, "矩阵A");
+        std::cout << std::endl;
+        printMatrix(B, K, N, "矩阵B");
+        std::cout << std::endl;
+        printMatrix(C_serial, M, N, "串行结果C");
+        std::cout << std::endl;
+        printMatrix(C_cuda, M, N, "CUDA结果C");
+    }
 
-    // ========== 验证结果是否正确 ==========
+    // ========== 验证结果 ==========
     std::cout << std::endl;
     bool correct = true;
     for (int i = 0; i < M * N; i++) {
-        if (fabs(C[i] - C_serial[i]) > 1e-5) {
+        if (fabs(C_cuda[i] - C_serial[i]) > 1e-5) {
             correct = false;
             std::cout << "❌ 验证失败！位置 " << i
-                << ": CUDA=" << C[i]
+                << ": CUDA=" << C_cuda[i]
                 << ", 串行=" << C_serial[i] << std::endl;
                 break;
         }
@@ -230,6 +271,15 @@ int main() {
     else {
         std::cout << "❌ 验证失败！结果不一致！" << std::endl;
     }
+
+    // ========== 性能总结 ==========
+    std::cout << std::endl;
+    std::cout << "==================== 性能总结 ====================" << std::endl;
+    std::cout << "矩阵规模: " << M << "×" << K << " · " << K << "×" << N << std::endl;
+    std::cout << "串行时间: " << serialTime << " ms" << std::endl;
+    std::cout << "CUDA时间: " << kernelTime << " ms" << std::endl;
+    std::cout << "加速比: " << serialTime / kernelTime << "x" << std::endl;
+    std::cout << "==================================================" << std::endl;
 
     cudaDeviceReset();
     return 0;
