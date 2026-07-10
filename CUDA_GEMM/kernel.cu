@@ -5,6 +5,55 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
+// ============================================
+// 选择GPU设备
+// ============================================
+bool selectGPU(int deviceId = 0) {
+	int deviceCount;
+	cudaError_t status;
+
+	// 1. 获取CUDA设备数量
+	status = cudaGetDeviceCount(&deviceCount);
+	if (status != cudaSuccess) {
+		std::cerr << "获取设备数量失败：" << cudaGetErrorString(status) << std::endl;
+		return false;
+	}
+
+	if (deviceCount == 0) {
+		std::cerr << "没有找到CUDA设备！" << std::endl;
+		return false;
+	}
+
+	std::cout << "找到 " << deviceCount << " 块CUDA显卡" << std::endl;
+
+	// 2. 显示所有设备信息
+	for (int i = 0; i < deviceCount; i++) {
+		cudaDeviceProp prop;
+		cudaGetDeviceProperties(&prop, i);
+		std::cout << "  设备 " << i << ": " << prop.name << std::endl;
+		std::cout << "    计算能力: " << prop.major << "." << prop.minor << std::endl;
+		std::cout << "    显存: " << prop.totalGlobalMem / (1024 * 1024) << " MB" << std::endl;
+	}
+
+	// 3. 选择设备
+	if (deviceId >= deviceCount) {
+		std::cerr << "设备 " << deviceId << " 不存在，使用设备0" << std::endl;
+		deviceId = 0;
+	}
+
+	status = cudaSetDevice(deviceId);
+	if (status != cudaSuccess) {
+		std::cerr << "设置设备 " << deviceId << " 失败：" << cudaGetErrorString(status) << std::endl;
+		return false;
+	}
+
+	cudaDeviceProp prop;
+	cudaGetDeviceProperties(&prop, deviceId);
+	std::cout << "✅ 使用设备: " << prop.name << std::endl;
+
+	return true;
+}
+
 // ============ 此部分为并行算法 ============
 __global__ void gemmKernel(float* A, float* B, float* C, int M, int N, int K) {
 	int row = blockIdx.y * blockDim.y + threadIdx.y;
@@ -21,6 +70,7 @@ __global__ void gemmKernel(float* A, float* B, float* C, int M, int N, int K) {
 
 bool cudaGEMM(std::vector<float>& a, std::vector<float>& b, std::vector<float>& c,
 	int M, int N, int K, float& kernelTime) {
+	// 指定用n卡
 	size_t bytesA = M * K * sizeof(float);
 	size_t bytesB = K * N * sizeof(float);
 	size_t bytesC = M * N * sizeof(float);
@@ -158,6 +208,10 @@ std::vector<float> flatten2D(std::vector<std::vector<float>>& a) {
 }
 
 int main() {
+	// ⭐ 首先选择GPU
+	if (!selectGPU(0)) {
+		return 1;
+	}
 	// 定义行列数
 	/*
 	小数组验证正确性
@@ -165,9 +219,9 @@ int main() {
 	const int K = 4;
 	const int N = 5;
 	*/
-	const int M = 512;
-	const int K = 512;
-	const int N = 512;
+	const int M = 1024;
+	const int K = 1024;
+	const int N = 1024;
 	// M*K · K*N = M*N
 	const int row_a = M, col_a = K;
 	const int row_b = K, col_b = N;
@@ -191,7 +245,6 @@ int main() {
 	}
 
 	// ========= 此部分为串行计算 =========
-
 	// 计时
 	double serialTime = 0.0;
 	// 计算两个矩阵运算结果
@@ -263,7 +316,14 @@ int main() {
 			return -2;
 		}
 	}
+	// 检查使用的设备
+	int currentDevice;
+	cudaGetDevice(&currentDevice);
+	std::cout << "当前设备: " << currentDevice << std::endl;
 
+	cudaDeviceProp prop;
+	cudaGetDeviceProperties(&prop, currentDevice);
+	std::cout << "设备名称: " << prop.name << std::endl;
 	// 对比结果
 	if (serialStatus && parallelStatus) {
 		if (flatten2D(c) == C) {
