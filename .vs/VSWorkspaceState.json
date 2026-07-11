@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\CUDA_GEMM",
+    "\\CUDA_GEMM\\CUDA_GEMM",
+    "\\CUDA_GEMM\\CUDA_GEMM\\x64",
+    "\\CUDA_GEMM\\CUDA_GEMM\\x64\\Release"
+  ],
+  "SelectedNode": "\\CUDA_GEMM\\CUDA_GEMM.sln",
+  "PreviewInSolutionExplorer": false
+}

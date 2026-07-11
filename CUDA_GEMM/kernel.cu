@@ -70,7 +70,6 @@ __global__ void gemmKernel(float* A, float* B, float* C, int M, int N, int K) {
 
 bool cudaGEMM(std::vector<float>& a, std::vector<float>& b, std::vector<float>& c,
 	int M, int N, int K, float& kernelTime) {
-	// 指定用n卡
 	size_t bytesA = M * K * sizeof(float);
 	size_t bytesB = K * N * sizeof(float);
 	size_t bytesC = M * N * sizeof(float);
@@ -219,9 +218,9 @@ int main() {
 	const int K = 4;
 	const int N = 5;
 	*/
-	const int M = 1024;
-	const int K = 1024;
-	const int N = 1024;
+	const int M = 32768;
+	const int K = 32768;
+	const int N = 32768;
 	// M*K · K*N = M*N
 	const int row_a = M, col_a = K;
 	const int row_b = K, col_b = N;
@@ -247,11 +246,24 @@ int main() {
 	// ========= 此部分为串行计算 =========
 	// 计时
 	double serialTime = 0.0;
+	bool serialStatus = false;
+	bool bigMatrix = true;// 大数组模式
 	// 计算两个矩阵运算结果
-	bool serialStatus = serialGEMM(a, b, c, M, N, K, serialTime);
+	if (!bigMatrix) {
+		serialStatus = serialGEMM(a, b, c, M, N, K, serialTime);
+	}
+	else {
+		serialStatus = true;
+	}
+	
 
 	if (serialStatus) {
-		std::cout << "串行计算成功！" << std::endl;
+		if (bigMatrix) {
+			std::cout << "大数组模式，仅作并行运算！" << std::endl;
+		}
+		else {
+			std::cout << "串行计算成功！" << std::endl;
+		}
 		// 输出结果
 		/*std::cout << "A矩阵是：" << std::endl;
 		for (auto& r : a) {
@@ -301,7 +313,7 @@ int main() {
 	std::vector<float> B;
 	std::vector<float> C;
 	float parallelTime = 0.0;
-	if (serialStatus) {// 串行计算成功才开始算，不然无法验证正确性
+	if (serialStatus || bigMatrix) {// 串行计算成功才开始算，不然无法验证正确性（或者大数组模式直接开始计算）
 		// 一维化
 		A = flatten2D(a);
 		B = flatten2D(b);
@@ -316,6 +328,7 @@ int main() {
 			return -2;
 		}
 	}
+
 	// 检查使用的设备
 	int currentDevice;
 	cudaGetDevice(&currentDevice);
@@ -324,18 +337,24 @@ int main() {
 	cudaDeviceProp prop;
 	cudaGetDeviceProperties(&prop, currentDevice);
 	std::cout << "设备名称: " << prop.name << std::endl;
+
 	// 对比结果
 	if (serialStatus && parallelStatus) {
-		if (flatten2D(c) == C) {
-			std::cout << "串行计算与并行计算结果一致，计算成功！" << std::endl;
-			std::cout << "串行计算时间为：" << serialTime << "ms" << std::endl;
-			std::cout << "并行计算时间为：" << parallelTime << "ms" << std::endl;
+		if (!bigMatrix) {
+			if (flatten2D(c) == C) {
+				std::cout << "串行计算与并行计算结果一致，计算成功！" << std::endl;
+				std::cout << "串行计算时间为：" << serialTime << "ms" << std::endl;
+				std::cout << "并行计算时间为：" << parallelTime << "ms" << std::endl;
+			}
+			else {
+				std::cerr << "计算结果出错！请检查。" << std::endl;
+			}
 		}
 		else {
-			std::cerr << "计算结果出错！请检查。" << std::endl;
+			std::cout << "大数组运算时间为：" << parallelTime << "ms" << std::endl;
 		}
+		
 	}
 
 	return 0;
 }
-
