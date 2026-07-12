@@ -5,6 +5,8 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
+#define BLOCK 16
+
 // ============================================
 // 选择GPU设备
 // ============================================
@@ -55,6 +57,8 @@ bool selectGPU(int deviceId = 0) {
 }
 
 // ============ 此部分为并行算法 ============
+
+// 朴素实现的GEMM核函数
 __global__ void gemmKernel(float* A, float* B, float* C, int M, int N, int K) {
 	int row = blockIdx.y * blockDim.y + threadIdx.y;
 	int col = blockIdx.x * blockDim.x + threadIdx.x;
@@ -66,6 +70,47 @@ __global__ void gemmKernel(float* A, float* B, float* C, int M, int N, int K) {
 		}
 		C[row * N + col] = sum;
 	}
+}
+
+// 优化1：减少全局内存访问
+// Tiled Shared-Memory分块核函数
+__global__ void gemmTiledKernel(float* A, float* B, float* C, int M, int N, int K){
+	__shared__ float As[BLOCK][BLOCK];
+	__shared__ float Bs[BLOCK][BLOCK];
+
+	int row = blockIdx.y * BLOCK + threadIdx.y;
+	int col = blockIdx.x * BLOCK + threadIdx.x;
+	float sum = 0.0f;
+
+	// 遍历K维度所有分块
+	for (int tile_k = 0; tile_k < (K + BLOCK - 1) / BLOCK; tile_k++)
+	{
+		// 加载A子块到共享内存
+		int a_col = tile_k * BLOCK + threadIdx.x;
+		if (row < M && a_col < K)
+			As[threadIdx.y][threadIdx.x] = A[row * K + a_col];
+		else
+			As[threadIdx.y][threadIdx.x] = 0.0f;
+
+		// 加载B子块，修复离散跨行访问
+		int b_row = tile_k * BLOCK + threadIdx.y;
+		if (b_row < K && col < N)
+			Bs[threadIdx.y][threadIdx.x] = B[b_row * N + col];
+		else
+			Bs[threadIdx.y][threadIdx.x] = 0.0f;
+
+		__syncthreads(); // 等待整块加载完成
+
+		// 共享内存内计算，无全局访问
+#pragma unroll
+		for (int k = 0; k < BLOCK; k++)
+			sum += As[threadIdx.y][k] * Bs[k][threadIdx.x];
+
+		__syncthreads(); // 防止下一轮覆盖数据
+	}
+
+	if (row < M && col < N)
+		C[row * N + col] = sum;
 }
 
 bool cudaGEMM(std::vector<float>& a, std::vector<float>& b, std::vector<float>& c,
@@ -123,11 +168,19 @@ bool cudaGEMM(std::vector<float>& a, std::vector<float>& b, std::vector<float>& 
 	cudaEventCreate(&start);
 	cudaEventCreate(&end);
 
+	// 优先分配共享内存
+	status = cudaFuncSetCacheConfig(gemmTiledKernel, cudaFuncCachePreferShared);
+	if (status != cudaSuccess)
+	{
+		std::cerr << "缓存策略设置失败！" << cudaGetErrorString(status) << std::endl;
+		goto ERROR;
+	}
+
 	// 记录开始
 	cudaEventRecord(start, 0);
 
 	// 启动核函数
-	gemmKernel << <blocksPerGrid, threadsPerBlock >> > (dev_A, dev_B, dev_C, M, N, K);
+	gemmTiledKernel << <blocksPerGrid, threadsPerBlock >> > (dev_A, dev_B, dev_C, M, N, K);
 
 	status = cudaGetLastError();
 	if (status != cudaSuccess) {
@@ -243,11 +296,26 @@ int main() {
 		}
 	}
 
+	// 提示当前数组大小，询问是否继续（防止超大数组无提示直接开始计算导致崩溃）
+	std::cout << "当前数组大小是：" << std::endl;
+	std::cout << "A数组：" << M << " * " << K << std::endl;
+	std::cout << "B数组：" << K << " * " << N << std::endl;
+	std::cout << "-- 按下 [N] 键并回车 [取消] 继续计算 --" << std::endl;
+	std::cout << "-- 按下 [Y] 键并回车 [确认] 继续运算 --" << std::endl;
+	char Y;
+	std::cin >> Y;
+	if (Y == 'y' || Y == 'Y') {
+		std::cout << "程序继续运行中..." << std::endl;
+	}
+	else {
+		return 0;
+	}
+
 	// ========= 此部分为串行计算 =========
 	// 计时
 	double serialTime = 0.0;
 	bool serialStatus = false;
-	bool bigMatrix = true;// 大数组模式
+	bool bigMatrix = false;// 大数组模式
 	// 计算两个矩阵运算结果
 	if (bigMatrix) {
 		serialStatus = true;
