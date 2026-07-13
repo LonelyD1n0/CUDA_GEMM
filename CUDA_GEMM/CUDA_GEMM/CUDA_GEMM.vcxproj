@@ -74,6 +74,11 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <Include>
+      </Include>
+      <CodeGeneration>compute_89,sm_89</CodeGeneration>
+      <AdditionalOptions>-use_fast_math -arch=sm_89 %(AdditionalOptions)</AdditionalOptions>
+      <FastMath>true</FastMath>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -74,7 +74,7 @@ __global__ void gemmKernel(float* A, float* B, float* C, int M, int N, int K) {
 
 // 优化1：减少全局内存访问
 // Tiled Shared-Memory分块核函数
-__global__ void gemmTiledKernel(float* A, float* B, float* C, int M, int N, int K){
+__global__ void gemmTiledKernel(float* A, float* B, float* C, int M, int N, int K) {
 	__shared__ float As[BLOCK][BLOCK];
 	__shared__ float Bs[BLOCK][BLOCK];
 
@@ -83,8 +83,7 @@ __global__ void gemmTiledKernel(float* A, float* B, float* C, int M, int N, int 
 	float sum = 0.0f;
 
 	// 遍历K维度所有分块
-	for (int tile_k = 0; tile_k < (K + BLOCK - 1) / BLOCK; tile_k++)
-	{
+	for (int tile_k = 0; tile_k < (K + BLOCK - 1) / BLOCK; tile_k++) {
 		// 加载A子块到共享内存
 		int a_col = tile_k * BLOCK + threadIdx.x;
 		if (row < M && a_col < K)
@@ -111,6 +110,45 @@ __global__ void gemmTiledKernel(float* A, float* B, float* C, int M, int N, int 
 
 	if (row < M && col < N)
 		C[row * N + col] = sum;
+}
+
+// 优化2：多寄存器累加，消除多余同步
+__global__ void gemmRegOptKernel(float* A, float* B, float* C, int M, int N, int K) {
+	__shared__ float As[BLOCK][BLOCK];
+	__shared__ float Bs[BLOCK][BLOCK];
+
+	int row = blockIdx.y * BLOCK + threadIdx.y;
+	int col = blockIdx.x * BLOCK + threadIdx.x;
+
+	// 4组独立寄存器累加器，无读写依赖，并行执行FMA
+	float s0 = 0.0f, s1 = 0.0f, s2 = 0.0f, s3 = 0.0f;
+
+	for (int tile_k = 0; tile_k < (K + BLOCK - 1) / BLOCK; tile_k++) {
+		// 加载A分块到共享内存
+		int a_col = tile_k * BLOCK + threadIdx.x;
+		As[threadIdx.y][threadIdx.x] = (row < M && a_col < K) ? A[row * K + a_col] : 0.0f;
+
+		// 加载B分块到共享内存
+		int b_row = tile_k * BLOCK + threadIdx.y;
+		Bs[threadIdx.y][threadIdx.x] = (b_row < K && col < N) ? B[b_row * N + col] : 0.0f;
+
+		__syncthreads(); // 仅保留1次同步，等待整块加载完成
+
+		// 4重展开，使用4组寄存器并行累加
+#pragma unroll 4
+		for (int k = 0; k < BLOCK; k += 4) {
+			s0 += As[threadIdx.y][k] * Bs[k][threadIdx.x];
+			s1 += As[threadIdx.y][k + 1] * Bs[k + 1][threadIdx.x];
+			s2 += As[threadIdx.y][k + 2] * Bs[k + 2][threadIdx.x];
+			s3 += As[threadIdx.y][k + 3] * Bs[k + 3][threadIdx.x];
+		}
+		// 删除末尾多余 __syncthreads(); 无意义同步，浪费周期
+	}
+
+	// 合并4组寄存器结果写入C
+	float total = s0 + s1 + s2 + s3;
+	if (row < M && col < N)
+		C[row * N + col] = total;
 }
 
 bool cudaGEMM(std::vector<float>& a, std::vector<float>& b, std::vector<float>& c,
@@ -156,7 +194,7 @@ bool cudaGEMM(std::vector<float>& a, std::vector<float>& b, std::vector<float>& 
 	}
 
 	// 配置并启动核函数
-	dim3 threadsPerBlock(16, 16);
+	dim3 threadsPerBlock(32, 8);// 优化2时此处更改，优化B矩阵访存，寄存器压力均衡
 	dim3 blocksPerGrid(
 		// 向上取整写法
 		(N + threadsPerBlock.x - 1) / threadsPerBlock.x,
@@ -169,7 +207,7 @@ bool cudaGEMM(std::vector<float>& a, std::vector<float>& b, std::vector<float>& 
 	cudaEventCreate(&end);
 
 	// 优先分配共享内存
-	status = cudaFuncSetCacheConfig(gemmTiledKernel, cudaFuncCachePreferShared);
+	status = cudaFuncSetCacheConfig(gemmRegOptKernel, cudaFuncCachePreferShared);
 	if (status != cudaSuccess)
 	{
 		std::cerr << "缓存策略设置失败！" << cudaGetErrorString(status) << std::endl;
@@ -180,7 +218,7 @@ bool cudaGEMM(std::vector<float>& a, std::vector<float>& b, std::vector<float>& 
 	cudaEventRecord(start, 0);
 
 	// 启动核函数
-	gemmTiledKernel << <blocksPerGrid, threadsPerBlock >> > (dev_A, dev_B, dev_C, M, N, K);
+	gemmRegOptKernel << <blocksPerGrid, threadsPerBlock >> > (dev_A, dev_B, dev_C, M, N, K);
 
 	status = cudaGetLastError();
 	if (status != cudaSuccess) {
@@ -315,7 +353,7 @@ int main() {
 	// 计时
 	double serialTime = 0.0;
 	bool serialStatus = false;
-	bool bigMatrix = false;// 大数组模式
+	bool bigMatrix = true;// 大数组模式
 	// 计算两个矩阵运算结果
 	if (bigMatrix) {
 		serialStatus = true;

@@ -4,10 +4,10 @@ AdditionalCompilerOptions=
 AdditionalDependencies=
 AdditionalDeps=
 AdditionalLibraryDirectories=
-AdditionalOptions=
-AdditionalOptions=
-CodeGeneration=compute_75,sm_75
-CodeGeneration=compute_75,sm_75
+AdditionalOptions=-use_fast_math -arch=sm_89
+AdditionalOptions=-use_fast_math -arch=sm_89
+CodeGeneration=compute_89,sm_89
+CodeGeneration=compute_89,sm_89
 CompileOut=D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\x64\Release\kernel.cu.obj
 CudaRuntime=Hybrid
 CudaToolkitCustomDir=
@@ -18,7 +18,7 @@ Emulation=false
 EnableVirtualArchInFatbin=true
 ExtensibleWholeProgramCompilation=false
 FastCompile=Off
-FastMath=false
+FastMath=true
 GenerateLineInfo=false
 GenerateRelocatableDeviceCode=false
 GPUDebugInfo=false

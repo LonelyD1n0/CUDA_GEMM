@@ -1,7 +1,6 @@
-﻿D:\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppClean.targets(77,5): warning : 文件“d:\steam\logs\gameoverlay_renderer.txt”正由另一进程使用，因此该进程无法访问此文件。
-  Compiling CUDA source file kernel.cu...
+﻿  Compiling CUDA source file kernel.cu...
   
-  D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM>"D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\bin\nvcc.exe" -gencode=arch=compute_75,code=\"sm_75,compute_75\" --use-local-env -ccbin "D:\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\bin\HostX64\x64" -x cu   -I"D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include" -I"C:\Users\60152\vcpkg\installed\x64-windows\include" -I"D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include"     --keep-dir x64\Release  -maxrregcount=0     --machine 64 --compile -cudart hybrid    -DWIN32 -DWIN64 -DNDEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /O2 /FS   /MD " -Xcompiler "/Fdx64\Release\vc143.pdb" -o D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\x64\Release\kernel.cu.obj "D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu" 
+  D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM>"D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\bin\nvcc.exe" -gencode=arch=compute_89,code=\"sm_89,compute_89\" --use-local-env -ccbin "D:\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\bin\HostX64\x64" -x cu   -I"D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include" -I"C:\Users\60152\vcpkg\installed\x64-windows\include" -I"D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include"     --keep-dir x64\Release -use_fast_math -maxrregcount=0     --machine 64 --compile -cudart hybrid -use_fast_math -arch=sm_89   -DWIN32 -DWIN64 -DNDEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /O2 /FS   /MD " -Xcompiler "/Fdx64\Release\vc143.pdb" -o D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\x64\Release\kernel.cu.obj "D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu" 
 D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include\cuda_runtime_api.h(13711): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include\cuda_runtime_api.h(14214): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include\cuda_runtime_api.h(13711): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
@@ -32,35 +31,35 @@ D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include\cuda_runtime_api.h(13711): wa
 D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include\cuda_runtime_api.h(14214): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include\cuda_runtime_api.h(13711): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include\cuda_runtime_api.h(14214): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(131): warning #546-D: transfer of control bypasses initialization of:
-              variable "threadsPerBlock" (declared at line 159)
-              variable "blocksPerGrid" (declared at line 160)
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(169): warning #546-D: transfer of control bypasses initialization of:
+              variable "threadsPerBlock" (declared at line 197)
+              variable "blocksPerGrid" (declared at line 198)
     		goto ERROR;
     		^
   
   Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
   
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(137): warning #546-D: transfer of control bypasses initialization of:
-              variable "threadsPerBlock" (declared at line 159)
-              variable "blocksPerGrid" (declared at line 160)
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(175): warning #546-D: transfer of control bypasses initialization of:
+              variable "threadsPerBlock" (declared at line 197)
+              variable "blocksPerGrid" (declared at line 198)
     		goto ERROR;
     		^
   
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(143): warning #546-D: transfer of control bypasses initialization of:
-              variable "threadsPerBlock" (declared at line 159)
-              variable "blocksPerGrid" (declared at line 160)
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(181): warning #546-D: transfer of control bypasses initialization of:
+              variable "threadsPerBlock" (declared at line 197)
+              variable "blocksPerGrid" (declared at line 198)
     		goto ERROR;
     		^
   
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(150): warning #546-D: transfer of control bypasses initialization of:
-              variable "threadsPerBlock" (declared at line 159)
-              variable "blocksPerGrid" (declared at line 160)
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(188): warning #546-D: transfer of control bypasses initialization of:
+              variable "threadsPerBlock" (declared at line 197)
+              variable "blocksPerGrid" (declared at line 198)
     		goto ERROR;
     		^
   
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(155): warning #546-D: transfer of control bypasses initialization of:
-              variable "threadsPerBlock" (declared at line 159)
-              variable "blocksPerGrid" (declared at line 160)
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(193): warning #546-D: transfer of control bypasses initialization of:
+              variable "threadsPerBlock" (declared at line 197)
+              variable "blocksPerGrid" (declared at line 198)
     		goto ERROR;
     		^
   
@@ -112,52 +111,52 @@ D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include\cuda_runtime_api.h(13711): wa
 D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include\cuda_runtime_api.h(14214): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include\cuda_runtime_api.h(13711): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 D:\NVIDIA GPU Computing Toolkit\CUDA\v13.3\include\cuda_runtime_api.h(14214): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(131): warning #546-D: transfer of control bypasses initialization of:
-              variable "threadsPerBlock" (declared at line 159)
-              variable "blocksPerGrid" (declared at line 160)
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(169): warning #546-D: transfer of control bypasses initialization of:
+              variable "threadsPerBlock" (declared at line 197)
+              variable "blocksPerGrid" (declared at line 198)
     		goto ERROR;
     		^
   
   Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
   
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(137): warning #546-D: transfer of control bypasses initialization of:
-              variable "threadsPerBlock" (declared at line 159)
-              variable "blocksPerGrid" (declared at line 160)
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(175): warning #546-D: transfer of control bypasses initialization of:
+              variable "threadsPerBlock" (declared at line 197)
+              variable "blocksPerGrid" (declared at line 198)
     		goto ERROR;
     		^
   
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(143): warning #546-D: transfer of control bypasses initialization of:
-              variable "threadsPerBlock" (declared at line 159)
-              variable "blocksPerGrid" (declared at line 160)
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(181): warning #546-D: transfer of control bypasses initialization of:
+              variable "threadsPerBlock" (declared at line 197)
+              variable "blocksPerGrid" (declared at line 198)
     		goto ERROR;
     		^
   
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(150): warning #546-D: transfer of control bypasses initialization of:
-              variable "threadsPerBlock" (declared at line 159)
-              variable "blocksPerGrid" (declared at line 160)
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(188): warning #546-D: transfer of control bypasses initialization of:
+              variable "threadsPerBlock" (declared at line 197)
+              variable "blocksPerGrid" (declared at line 198)
     		goto ERROR;
     		^
   
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(155): warning #546-D: transfer of control bypasses initialization of:
-              variable "threadsPerBlock" (declared at line 159)
-              variable "blocksPerGrid" (declared at line 160)
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(193): warning #546-D: transfer of control bypasses initialization of:
+              variable "threadsPerBlock" (declared at line 197)
+              variable "blocksPerGrid" (declared at line 198)
     		goto ERROR;
     		^
   
   kernel.cu
-  tmpxft_00002064_00000000-7_kernel.cudafe1.cpp
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(160): warning C4533: "goto ERROR" 跳过了 "blocksPerGrid" 的初始化
-  D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(218): note: 参见“ERROR”的声明
-  D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(160): note: 参见“blocksPerGrid”的声明
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(159): warning C4533: "goto ERROR" 跳过了 "threadsPerBlock" 的初始化
-  D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(218): note: 参见“ERROR”的声明
-  D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(159): note: 参见“threadsPerBlock”的声明
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(290): warning C4244: “=”: 从“int”转换到“_Ty”，可能丢失数据
+  tmpxft_0000840c_00000000-7_kernel.cudafe1.cpp
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(198): warning C4533: "goto ERROR" 跳过了 "blocksPerGrid" 的初始化
+  D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(256): note: 参见“ERROR”的声明
+  D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(198): note: 参见“blocksPerGrid”的声明
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(197): warning C4533: "goto ERROR" 跳过了 "threadsPerBlock" 的初始化
+  D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(256): note: 参见“ERROR”的声明
+  D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(197): note: 参见“threadsPerBlock”的声明
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(328): warning C4244: “=”: 从“int”转换到“_Ty”，可能丢失数据
           with
           [
               _Ty=float
           ]
-D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(295): warning C4244: “=”: 从“int”转换到“_Ty”，可能丢失数据
+D:\github_clone\LonelyD1n0\CUDA_GEMM\CUDA_GEMM\CUDA_GEMM\kernel.cu(333): warning C4244: “=”: 从“int”转换到“_Ty”，可能丢失数据
           with
           [
               _Ty=float
